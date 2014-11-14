@@ -37,13 +37,13 @@ public:
     friend
     QTextStream& operator<<(QTextStream& out, Parser<U> &P);
 
-    ullint num_words=0;
-    ullint len_words=0;
-    double avg_word_len=0;
-    double avg_sentence_len=0;
-    double avg_syllables = 0;
-    ullint num_sentences=0;
-    ullint num_syllables=0;
+    ullint num_words;
+    ullint len_words;
+    double avg_word_len;
+    double avg_sentence_len;
+    double avg_syllables;
+    ullint num_sentences;
+    ullint num_syllables;
 private:
     void nukem();
     QRegExp Expressions[15]; // sets of keywords and delimiters for regex  // "CHAPTER" "
@@ -54,6 +54,13 @@ private:
 template<typename T>
 Parser<T>::Parser()
 {
+    num_words=0;
+    len_words=0;
+    avg_word_len=0;
+    avg_sentence_len=0;
+    avg_syllables = 0;
+    num_sentences=0;
+    num_syllables=0;
     Expressions[2].setPattern("\\b[A-Z0-9\\-\\(\\)\\'\\s]+\\b"); // any word even contractions and hyphenated words...
     Expressions[3].setPattern("[\\;\\.\\?\\!]+"); // sentence termination including "..." ellipsis
     Expressions[4].setPattern("(?![A-Za-z0-9\\'\\;\\.\\?\\!\\-\\s]+)"); // match something that's not A-Za-z.;'?!- or space

@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <iostream>
 #include "mwindow.h"
+#include <ctime>
 
 
 using namespace std;
