@@ -236,7 +236,7 @@ void mwindow::doClear()
 }
 void mwindow::doParse()
 {
-
+    doClear();
     statusBar()->showMessage("PARSING...",10000);
     statusBar()->showMessage("PARSING...",10000);
     if (infile.isOpen())
@@ -347,9 +347,8 @@ void mwindow::doProcessBST()
         tables[i]->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         tables[i]->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Word")));
         tables[i]->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Count")));
-        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Book(Chap.)")));
-        tables[i]->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Paragraph")));
-        tables[i]->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Line")));
+        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Paragraph")));
+        tables[i]->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Line")));
 
         int ref_letter = presort.theBST()[i].thebstroot().size();
         tables[i]->setRowCount(ref_letter+1); // add all rows at once!
@@ -375,19 +374,11 @@ void mwindow::doProcessBST()
             TopTen.append(QString::number(bstten[i]->theCount()));
             TopTen.append(" times in: ");
             uint z = 0;
-            for (uint j = 0; j < bstten[i]->theBook().size(); j++)
+            uint linesz = bstten[i]->theLine().size();
+            for (uint j = 0; j < linesz; j++)
             {
-                uint booksize = bstten[i]->theBook()[j].size();
-                if (booksize > 0)
-                {
-                    TopTen.append(QString("\n B: %1").arg(j));
-                    for (uint k = 0; k < booksize; k++)
-                    {
-                        TopTen.append(QString("C: %1 ").arg(bstten[i]->theBook()[j][k]));
-                        TopTen.append(QString("L: %1 ").arg(bstten[i]->theLine()[z]));
-                        TopTen.append(QString("P: %1 ,").arg(bstten[i]->theParagraph()[z++]));
-                    }
-                }
+                TopTen.append(QString("L: %1 ").arg(bstten[i]->theLine()[j]));
+                TopTen.append(QString("P: %1 ,").arg(bstten[i]->theParagraph()[j]));
             }
         }
         TopTen.append("\n\n");
@@ -438,30 +429,6 @@ void mwindow::doTraversalBST(int tablenum, int idx)
         tables[tablenum]->setItem(linenumber, 0, new QTableWidgetItem(presort.theBST()[tablenum].thebstroot()[idx]->theData()));
         tables[tablenum]->setItem(linenumber, 1, new QTableWidgetItem(QString::number(presort.theBST()[tablenum].thebstroot()[idx]->theCount())));
 
-
-        QString thebooks;
-        uint booksize = avltrees[tablenum].thebstroot()[idx]->theBook().size();
-        // idx is the index of this recursion // tablenum is the table we are in that stays the same over recursive calls
-        for (uint i = 0; i < booksize; i++)
-        {
-            QString currentbook; // i is the current book in this idx of recursion
-            if (avltrees[tablenum].thebstroot()[idx]->theBook()[i].size() > 0)
-            {
-                uint thissize = avltrees[tablenum].thebstroot()[idx]->theBook()[i].size();
-                currentbook.append(QString::number(i));
-                currentbook.append(tr("("));
-                for (uint j = 0; j < thissize; j++)
-                {
-                    currentbook.append(QString::number(avltrees[tablenum].thebstroot()[idx]->theBook()[i][j]));
-                    currentbook.append(", ");
-                }
-                if (currentbook[currentbook.size()-2] == QChar(','))
-                    currentbook.chop(2);
-                currentbook.append(tr("), "));
-            }
-            thebooks.append(currentbook);
-        }
-        tables[tablenum]->setItem(linenumber, 2, new QTableWidgetItem(thebooks));
         uint paragraphsize = avltrees[tablenum].thebstroot()[idx]->theParagraph().size();
         QString theparas;
         for (uint i = 0; i < paragraphsize; i++)
@@ -471,7 +438,7 @@ void mwindow::doTraversalBST(int tablenum, int idx)
         }
         if (theparas[theparas.size()-2] == QChar(','))
             theparas.chop(2);
-        tables[tablenum]->setItem(linenumber, 3, new QTableWidgetItem(theparas));
+        tables[tablenum]->setItem(linenumber, 2, new QTableWidgetItem(theparas));
 
         uint linesize = avltrees[tablenum].thebstroot()[idx]->theLine().size();
         QString thelines;
@@ -482,7 +449,7 @@ void mwindow::doTraversalBST(int tablenum, int idx)
         }
         if (thelines[thelines.size()-2] == QChar(','))
             thelines.chop(2);
-        tables[tablenum]->setItem(linenumber, 4, new QTableWidgetItem(thelines));
+        tables[tablenum]->setItem(linenumber, 3, new QTableWidgetItem(thelines));
         linenumber++;
     }
     if (avltrees[tablenum].thebstroot()[2*idx+1])
@@ -521,10 +488,8 @@ void mwindow::doProcessHeap()
         tables[i]->setColumnCount(6);
         tables[i]->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         tables[i]->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Word")));
-        tables[i]->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Book")));
-        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Chapter")));
-        tables[i]->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Paragraph")));
-        tables[i]->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Line")));
+        tables[i]->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Paragraph")));
+        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Line")));
 
         int ref_letter = ref_Heap[i].size();
         tables[i]->setRowCount(ref_letter+1); // add all rows at once!
@@ -543,10 +508,8 @@ void mwindow::doProcessHeap()
                 mapforcount[this_string] = new node<QString>(*presort.theAlphas()[i][ref_Heap[i][j]]);
             else
                 *mapforcount[this_string] += *presort.theAlphas()[i][ref_Heap[i][j]]; // add all relevant information (overloaded already)
-            tables[i]->setItem(ref_letter-j-1, 1, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theBook().size())));
-            tables[i]->setItem(ref_letter-j-1, 2, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theBook()[presort.theAlphas()[i][ref_Heap[i][j]]->theBook().size()-1][0])));
-            tables[i]->setItem(ref_letter-j-1, 3, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theParagraph()[0])));
-            tables[i]->setItem(ref_letter-j-1, 4, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theLine()[0])));
+            tables[i]->setItem(ref_letter-j-1, 1, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theParagraph()[0])));
+            tables[i]->setItem(ref_letter-j-1, 2, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theLine()[0])));
         }
         // now walk through the map with the iterator
     }
@@ -606,19 +569,11 @@ void mwindow::doProcessHeap()
             TopTen.append(QString::number(tenmostfreq[i]->theCount()));
             TopTen.append(" times in: ");
             uint z = 0;
-            for (uint j = 0; j < tenmostfreq[i]->theBook().size(); j++)
+            uint linesz = tenmostfreq[i]->theLine().size();
+            for (uint j = 0; j < linesz; j++)
             {
-                uint booksize = tenmostfreq[i]->theBook()[j].size();
-                if (booksize > 0)
-                {
-                    TopTen.append(QString("\n B: %1").arg(j));
-                    for (uint k = 0; k < booksize; k++)
-                    {
-                        TopTen.append(QString("C: %1 ").arg(tenmostfreq[i]->theBook()[j][k]));
-                        TopTen.append(QString("L: %1 ").arg(tenmostfreq[i]->theLine()[z]));
-                        TopTen.append(QString("P: %1 ,").arg(tenmostfreq[i]->theParagraph()[z++]));
-                    }
-                }
+                TopTen.append(QString("L: %1 ").arg(tenmostfreq[i]->theLine()[j]));
+                TopTen.append(QString("P: %1 ,").arg(tenmostfreq[i]->theParagraph()[j]));
             }
             TopTen.append("\n\n");
         }

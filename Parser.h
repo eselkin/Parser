@@ -54,8 +54,6 @@ private:
 template<typename T>
 Parser<T>::Parser()
 {
-    Expressions[0].setPattern("\\bBOOK\\b"); // the word BOOK
-    Expressions[1].setPattern("\\bCHAPTER\\b"); // the word CHAPTER
     Expressions[2].setPattern("\\b[A-Z0-9\\-\\(\\)\\'\\s]+\\b"); // any word even contractions and hyphenated words...
     Expressions[3].setPattern("[\\;\\.\\?\\!]+"); // sentence termination including "..." ellipsis
     Expressions[4].setPattern("(?![A-Za-z0-9\\'\\;\\.\\?\\!\\-\\s]+)"); // match something that's not A-Za-z.;'?!- or space
@@ -120,25 +118,11 @@ QTextStream &operator>>(QTextStream &in, Parser<U> &P)
     QString this_word, line;
     node<U>* new_word;
     bool paragraph_reset = false, got_line = false;
-    int paragraph = 1, chapter_of_book = 1, book_of_text = 1, line_of_book = 1;
+    int paragraph = 1, line_of_book = 1;
     while ( !in.atEnd() )
     {
         line = in.readLine();
         //        // Fails at EOF ... next 2 lines cuts out anything but new line chars (auto by getline) and A-Za-z Space or period
-
-        if (line.contains(P.Expressions[0]))
-        {
-            // we found a BOOK!
-            book_of_text++; // it's not in the word count
-            chapter_of_book = 1;
-            continue; // so break out of the word or paragraph finding loop
-        }
-        if (line.contains(P.Expressions[1]))
-        {
-            //            // we found a CHAPTER!
-            chapter_of_book++; // it's not in the word count
-            continue; // so break out of the word or paragraph finding loop
-        }
 
         line = line.normalized(QString::NormalizationForm_D); // normalize QString... take out accent marks/diacriticals
 
@@ -184,7 +168,7 @@ QTextStream &operator>>(QTextStream &in, Parser<U> &P)
                 break;
             this_word[0] = this_word[0].toUpper();
             syllablect = P.find_syll(this_word);
-            new_word = new node<U>(this_word, 1, syllablect, book_of_text, chapter_of_book, line_of_book, paragraph, 0);
+            new_word = new node<U>(this_word, 1, syllablect, line_of_book, paragraph, 0);
             P.num_syllables+=syllablect;
             P.num_words++;
             P.len_words+=this_word.size();
@@ -235,7 +219,11 @@ void Parser<T>::nukem()
 {
     ullint wordsz = wordlist.size();
     for (ullint i; i < wordsz; i++)
+    {
         if (wordlist[i]) delete wordlist[i];
+        wordlist[i] = NULL;
+    }
     wordlist.clear();
+
 }
 #endif // PARSER_H
