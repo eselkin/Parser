@@ -169,6 +169,7 @@ vector<int> &node<T>::theLine()
 template<typename T>
 void node<T>::nukem()
 {
+
     // there is no DYNAMIC MEMORY, NO LEFT RIGHT! HANDLED NOW BY ITS INDEX
 }
 

@@ -223,7 +223,6 @@ void mwindow::openfile_input()
 void mwindow::doClear()
 {
     RegexParser.clear();
-    presort.clear();
     statusBar()->showMessage("CLEARING DATA AND PARSING AND SORTING...", 10000);
     statusBar()->showMessage("CLEARING DATA AND PARSING AND SORTING...", 10000);
     theSummary->clear();
@@ -260,7 +259,7 @@ void mwindow::doProcess()
 {
     // presort
     // semi-binsort the alpha vectors, just by first letter... coming in in order, line by line
-    presort << RegexParser.theWordlist();
+    *presort << RegexParser.theWordlist();
 }
 
 void mwindow::getTopTen()
@@ -268,18 +267,18 @@ void mwindow::getTopTen()
     for (int i = 0; i < 10; i++)
         bstten[i] = NULL;
     int bsthigh = 10;
-    for (uint i = 0; i < presort.theBST().size(); i++)
+    for (uint i = 0; i < avltrees.size(); i++)
     {
-        int bstsize = presort.theBST()[i].thebstroot().size();
+        int bstsize = avltrees[i].thebstroot().size();
         for (int j = 0; j < bstsize ; j++)
         {
-            if (!presort.theBST()[i].thebstroot()[j])
+            if (!avltrees[i].thebstroot()[j])
                 continue;
 
             if (bsthigh == 10)
             {
                 bsthigh--;
-                bstten[9] = presort.theBST()[i].thebstroot()[j]; // if we don't have a root
+                bstten[9] = avltrees[i].thebstroot()[j]; // if we don't have a root
             }
             else
             {
@@ -288,30 +287,30 @@ void mwindow::getTopTen()
                 {
                     // find the place from where we need to move up because highest val is >0 we can move the array
                     int t = 9;
-                    for (; bstten[t] && bstten[t]->theCount() < presort.theBST()[i].thebstroot()[j]->theCount(); t--);
+                    for (; bstten[t] && bstten[t]->theCount() < avltrees[i].thebstroot()[j]->theCount(); t--);
                     movearrayleft(bstten,1,bsthigh,t);
                     bsthigh--;
-                    bstten[t] = presort.theBST()[i].thebstroot()[j]; // in the place that was opened
+                    bstten[t] = avltrees[i].thebstroot()[j]; // in the place that was opened
                 }
                 else
                 {
                     //we need to check FROM WHERE we need to move the list down
                     int t = 9;
-                    for (; t >=0 && bstten[t] && bstten[t]->theCount() < presort.theBST()[i].thebstroot()[j]->theCount(); t-- );
+                    for (; t >=0 && bstten[t] && bstten[t]->theCount() < avltrees[i].thebstroot()[j]->theCount(); t-- );
                     if (t == 9)
                     {
                         if (!bstten[t])
-                            bstten[t] = presort.theBST()[i].thebstroot()[j];
+                            bstten[t] = avltrees[i].thebstroot()[j];
                         else
-                            if (bstten[t]->theCount() < presort.theBST()[i].thebstroot()[j]->theCount())
-                                bstten[t] = presort.theBST()[i].thebstroot()[j];
+                            if (bstten[t]->theCount() < avltrees[i].thebstroot()[j]->theCount())
+                                bstten[t] = avltrees[i].thebstroot()[j];
                     }
                     else if(t+1 <= 9)
                     {
                         // we need to move from t+1 to the end, right 1 space
                         movearrayright(bstten,1,t+1, 10);
                         // highest value doesn't change even if t+1 IS bsthigh, because
-                        bstten[t+1] = presort.theBST()[i].thebstroot()[j];
+                        bstten[t+1] = avltrees[i].thebstroot()[j];
                     }
                 }
             }
@@ -332,11 +331,12 @@ void mwindow::doProcessBST()
     for (int i = 0 ; i < 10; i++)
         bstten[i] = NULL;
     statusBar()->showMessage("PROCESSING BST..",10000);
-    presort << AVL;
+    presort = new presorter<QString>;
+    *presort << AVL;
     statusBar()->showMessage("PROCESSING BST...",10000);
     doProcess();
     // reset just in case
-    presort >> avltrees;
+    *presort >> avltrees;
     getTopTen();
     statusBar()->showMessage("DONE WITH BST... POPULATING TABLE OF INFORMATION...",10000);
     for (uint i = 0; i < avltrees.size(); i++)
@@ -350,7 +350,7 @@ void mwindow::doProcessBST()
         tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Paragraph")));
         tables[i]->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Line")));
 
-        int ref_letter = presort.theBST()[i].thebstroot().size();
+        int ref_letter = presort->theBST()[i].thebstroot().size();
         tables[i]->setRowCount(ref_letter+1); // add all rows at once!
 
         // we have to do a traversal...
@@ -401,7 +401,7 @@ void mwindow::doProcessBST()
             NWL.append("\n");
     }
     NWL.append("\n");
-    theSummary->setText(BSTTIME.arg(QString::number(timetoparse), QString::number(presort.time_last_sort)));
+    theSummary->setText(BSTTIME.arg(QString::number(timetoparse), QString::number(presort->time_last_sort)));
     theSummary->append(NWL);
     theSummary->append(WC.arg(QString::number(RegexParser.num_words)));
     theSummary->append(SC.arg(QString::number(RegexParser.num_sentences)));
@@ -413,7 +413,7 @@ void mwindow::doProcessBST()
     statusBar()->showMessage("DONE POPULATING TABLES....", 10000);
     theSummary->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     RegexParser.clear();
-    presort.clear();
+    delete presort;
 }
 
 void mwindow::doTraversalBST(int tablenum, int idx)
@@ -426,8 +426,8 @@ void mwindow::doTraversalBST(int tablenum, int idx)
     {
 
         // we're putting in this node to the table
-        tables[tablenum]->setItem(linenumber, 0, new QTableWidgetItem(presort.theBST()[tablenum].thebstroot()[idx]->theData()));
-        tables[tablenum]->setItem(linenumber, 1, new QTableWidgetItem(QString::number(presort.theBST()[tablenum].thebstroot()[idx]->theCount())));
+        tables[tablenum]->setItem(linenumber, 0, new QTableWidgetItem(avltrees[tablenum].thebstroot()[idx]->theData()));
+        tables[tablenum]->setItem(linenumber, 1, new QTableWidgetItem(QString::number(avltrees[tablenum].thebstroot()[idx]->theCount())));
 
         uint paragraphsize = avltrees[tablenum].thebstroot()[idx]->theParagraph().size();
         QString theparas;
@@ -458,6 +458,7 @@ void mwindow::doTraversalBST(int tablenum, int idx)
 
 void mwindow::doProcessHeap()
 {
+    presort = new presorter<QString>;
     map<QString, node<QString>* > mapforcount;
     map<QString, node<QString>* >::iterator mapIt;
     node<QString>* tenmostfreq[10];
@@ -473,12 +474,12 @@ void mwindow::doProcessHeap()
     }
     statusBar()->showMessage("PROCESSING HEAP..",1000);
     statusBar()->showMessage("PROCESSING HEAP..",1000);
-    presort << HEAP;
+    *presort << HEAP;
     statusBar()->showMessage("PROCESSING HEAP...",3000);
     doProcess();
     // reset just in case
     // Do process on inStream
-    presort >> ref_Heap; // we get the references using reheapify
+    *presort >> ref_Heap; // we get the references using reheapify
     statusBar()->showMessage("DONE PROCESSING HEAP, POPULATING TABLES...",3000);
     statusBar()->showMessage("DONE PROCESSING HEAP, POPULATING TABLES...",3000);
     for (uint i = 0; i < ref_Heap.size(); i++)
@@ -495,9 +496,9 @@ void mwindow::doProcessHeap()
         tables[i]->setRowCount(ref_letter+1); // add all rows at once!
         for (uint j = ref_letter-1; j > 0; j--)
         {
-            if (!presort.theAlphas()[i][ref_Heap[i][j]])
+            if (!presort->theAlphas()[i][ref_Heap[i][j]])
                 continue;
-            QString this_string = presort.theAlphas()[i][ref_Heap[i][j]]->theData();
+            QString this_string = presort->theAlphas()[i][ref_Heap[i][j]]->theData();
             tables[i]->setItem(ref_letter-j-1, 0, new QTableWidgetItem(this_string));
             // map here
             mapIt = mapforcount.find(this_string);
@@ -505,11 +506,11 @@ void mwindow::doProcessHeap()
 
             if (mapIt == mapforcount.end())
                 // Not found so ... add it
-                mapforcount[this_string] = new node<QString>(*presort.theAlphas()[i][ref_Heap[i][j]]);
+                mapforcount[this_string] = new node<QString>(*presort->theAlphas()[i][ref_Heap[i][j]]);
             else
-                *mapforcount[this_string] += *presort.theAlphas()[i][ref_Heap[i][j]]; // add all relevant information (overloaded already)
-            tables[i]->setItem(ref_letter-j-1, 1, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theParagraph()[0])));
-            tables[i]->setItem(ref_letter-j-1, 2, new QTableWidgetItem(QString::number(presort.theAlphas()[i][ref_Heap[i][j]]->theLine()[0])));
+                *mapforcount[this_string] += *presort->theAlphas()[i][ref_Heap[i][j]]; // add all relevant information (overloaded already)
+            tables[i]->setItem(ref_letter-j-1, 1, new QTableWidgetItem(QString::number(presort->theAlphas()[i][ref_Heap[i][j]]->theParagraph()[0])));
+            tables[i]->setItem(ref_letter-j-1, 2, new QTableWidgetItem(QString::number(presort->theAlphas()[i][ref_Heap[i][j]]->theLine()[0])));
         }
         // now walk through the map with the iterator
     }
@@ -579,34 +580,34 @@ void mwindow::doProcessHeap()
         }
     }
     WC = WC.arg(QString::number(RegexParser.num_words)).
-            arg(QString::number(presort.theAlphas()[0].size())).
-            arg(QString::number(presort.theAlphas()[1].size())).
-            arg(QString::number(presort.theAlphas()[2].size())).
-            arg(QString::number(presort.theAlphas()[3].size())).
-            arg(QString::number(presort.theAlphas()[4].size())).
-            arg(QString::number(presort.theAlphas()[5].size())).
-            arg(QString::number(presort.theAlphas()[6].size())).
-            arg(QString::number(presort.theAlphas()[7].size())).
-            arg(QString::number(presort.theAlphas()[8].size())).
-            arg(QString::number(presort.theAlphas()[9].size())).
-            arg(QString::number(presort.theAlphas()[10].size())).
-            arg(QString::number(presort.theAlphas()[11].size())).
-            arg(QString::number(presort.theAlphas()[12].size())).
-            arg(QString::number(presort.theAlphas()[13].size())).
-            arg(QString::number(presort.theAlphas()[14].size())).
-            arg(QString::number(presort.theAlphas()[15].size())).
-            arg(QString::number(presort.theAlphas()[16].size())).
-            arg(QString::number(presort.theAlphas()[17].size())).
-            arg(QString::number(presort.theAlphas()[18].size())).
-            arg(QString::number(presort.theAlphas()[19].size())).
-            arg(QString::number(presort.theAlphas()[20].size())).
-            arg(QString::number(presort.theAlphas()[21].size())).
-            arg(QString::number(presort.theAlphas()[22].size())).
-            arg(QString::number(presort.theAlphas()[23].size())).
-            arg(QString::number(presort.theAlphas()[24].size())).
-            arg(QString::number(presort.theAlphas()[25].size()));
+            arg(QString::number(presort->theAlphas()[0].size())).
+            arg(QString::number(presort->theAlphas()[1].size())).
+            arg(QString::number(presort->theAlphas()[2].size())).
+            arg(QString::number(presort->theAlphas()[3].size())).
+            arg(QString::number(presort->theAlphas()[4].size())).
+            arg(QString::number(presort->theAlphas()[5].size())).
+            arg(QString::number(presort->theAlphas()[6].size())).
+            arg(QString::number(presort->theAlphas()[7].size())).
+            arg(QString::number(presort->theAlphas()[8].size())).
+            arg(QString::number(presort->theAlphas()[9].size())).
+            arg(QString::number(presort->theAlphas()[10].size())).
+            arg(QString::number(presort->theAlphas()[11].size())).
+            arg(QString::number(presort->theAlphas()[12].size())).
+            arg(QString::number(presort->theAlphas()[13].size())).
+            arg(QString::number(presort->theAlphas()[14].size())).
+            arg(QString::number(presort->theAlphas()[15].size())).
+            arg(QString::number(presort->theAlphas()[16].size())).
+            arg(QString::number(presort->theAlphas()[17].size())).
+            arg(QString::number(presort->theAlphas()[18].size())).
+            arg(QString::number(presort->theAlphas()[19].size())).
+            arg(QString::number(presort->theAlphas()[20].size())).
+            arg(QString::number(presort->theAlphas()[21].size())).
+            arg(QString::number(presort->theAlphas()[22].size())).
+            arg(QString::number(presort->theAlphas()[23].size())).
+            arg(QString::number(presort->theAlphas()[24].size())).
+            arg(QString::number(presort->theAlphas()[25].size()));
 
-    theSummary->setText(HEAPTIME.arg(QString::number(timetoparse), QString::number(presort.time_last_sort)));
+    theSummary->setText(HEAPTIME.arg(QString::number(timetoparse), QString::number(presort->time_last_sort)));
     theSummary->append(WC);
     theSummary->append(SC.arg(QString::number(RegexParser.num_sentences)));
     theSummary->append(SYC.arg(QString::number(RegexParser.num_syllables)));
@@ -615,7 +616,7 @@ void mwindow::doProcessHeap()
     theSummary->append(TopTen);
     theSummary->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
     RegexParser.clear();
-    presort.clear();
+    delete presort;
 }
 
 bool mwindow::movearrayleft(node<QString>* arr[], int howmany, int fromleft, int toright)

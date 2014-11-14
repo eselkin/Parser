@@ -90,7 +90,7 @@ private:
     QFile infile, outfile;
     QTextStream *inStream, *outStream;
     Parser<QString> RegexParser;
-    presorter<QString> presort; // has the heap
+    presorter<QString> *presort; // has the heap
     vector < vector < ullint > > ref_Heap;
     vector< bst< node<QString> > > avltrees;
     void setuptab(int i);

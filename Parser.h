@@ -11,6 +11,7 @@
 #include <QStringListIterator>
 #include <QTextStream>
 #include "node.h"
+#include <QDebug>
 using namespace std;
 
 typedef unsigned long long int ullint;
@@ -123,7 +124,7 @@ QTextStream &operator>>(QTextStream &in, Parser<U> &P)
 {
     int pos, syllablect = 0;
     QString this_word, line;
-    node<U>* new_word;
+    node<U>* new_word = NULL;
     bool paragraph_reset = false, got_line = false;
     int paragraph = 1, line_of_book = 1;
     while ( !in.atEnd() )
@@ -180,6 +181,7 @@ QTextStream &operator>>(QTextStream &in, Parser<U> &P)
             P.num_words++;
             P.len_words+=this_word.size();
             P.wordlist.push_back(new_word);
+            new_word = NULL;
         }
     }
     return in;
@@ -225,9 +227,11 @@ template <typename T>
 void Parser<T>::nukem()
 {
     ullint wordsz = wordlist.size();
-    for (ullint i; i < wordsz; i++)
+    qDebug() << "LIST SIZE: " << wordsz;
+    for (ullint i = 0; i < wordsz; i++)
     {
-        if (wordlist[i]) delete wordlist[i];
+        if (wordlist[i])
+            delete wordlist[i];
         wordlist[i] = NULL;
     }
     wordlist.clear();

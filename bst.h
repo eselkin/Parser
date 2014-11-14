@@ -595,7 +595,7 @@ PRINTORDER bst<T>::getPrintOrder() const
 template<typename T>
 void bst<T>::nukem()
 {
-    bstroot.clear(); // CLEAR ITERATORS
+    bstroot.clear();
 }
 
 template<typename T>

@@ -170,12 +170,7 @@ void presorter<T>::nukem()
             heapsize = heaps.size(),
             bstsize  = bsts.size();
     for (uint i = 0; i < alphasize; i++)
-    {
-        ullint betasize = theAlphas()[i].size();
-        for (uint j = 0; j < betasize; j++)
-            if (theAlphas()[i][j] != NULL) delete (theAlphas()[i][j]);// just a vector of node pointers
         theAlphas()[i].clear();
-    }
     theAlphas().clear();
     for (uint i = 0; i < heapsize; i++)
         heaps[i].clear();  // clear each heap
