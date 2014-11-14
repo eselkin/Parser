@@ -11,7 +11,6 @@ using namespace std;
 mwindow::mwindow(QWidget *parent) :
     QMainWindow(parent)
 {
-
     theMenu = new QMenuBar(parent);
     theMenu->setGeometry(0,0,800,25);
     setMenuBar(theMenu);
@@ -139,7 +138,7 @@ void mwindow::doFindinSS()
         founds = tables[charval]->findItems(findss->text(), Qt::MatchExactly);
     else
         founds = tables[charval]->findItems(findss->text(), Qt::MatchStartsWith);
-    if ( founds[0] )
+    if (!founds.isEmpty())
     {
         founds[0]->setSelected(1);
         tables[charval]->scrollToItem(founds[0]);
@@ -489,8 +488,9 @@ void mwindow::doProcessHeap()
         tables[i]->setColumnCount(6);
         tables[i]->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         tables[i]->setHorizontalHeaderItem(0, new QTableWidgetItem(tr("Word")));
-        tables[i]->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Paragraph")));
-        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Line")));
+        tables[i]->setHorizontalHeaderItem(1, new QTableWidgetItem(tr("Count")));
+        tables[i]->setHorizontalHeaderItem(2, new QTableWidgetItem(tr("Paragraph")));
+        tables[i]->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Line")));
 
         int ref_letter = ref_Heap[i].size();
         tables[i]->setRowCount(ref_letter+1); // add all rows at once!
@@ -499,7 +499,6 @@ void mwindow::doProcessHeap()
             if (!presort->theAlphas()[i][ref_Heap[i][j]])
                 continue;
             QString this_string = presort->theAlphas()[i][ref_Heap[i][j]]->theData();
-            tables[i]->setItem(ref_letter-j-1, 0, new QTableWidgetItem(this_string));
             // map here
             mapIt = mapforcount.find(this_string);
             // returns mapforcount.end() if not found!
@@ -509,14 +508,20 @@ void mwindow::doProcessHeap()
                 mapforcount[this_string] = new node<QString>(*presort->theAlphas()[i][ref_Heap[i][j]]);
             else
                 *mapforcount[this_string] += *presort->theAlphas()[i][ref_Heap[i][j]]; // add all relevant information (overloaded already)
-            tables[i]->setItem(ref_letter-j-1, 1, new QTableWidgetItem(QString::number(presort->theAlphas()[i][ref_Heap[i][j]]->theParagraph()[0])));
-            tables[i]->setItem(ref_letter-j-1, 2, new QTableWidgetItem(QString::number(presort->theAlphas()[i][ref_Heap[i][j]]->theLine()[0])));
         }
         // now walk through the map with the iterator
     }
+    int lettervalue = 0;
+    int row = 0;
+    int tempe;
     for (mapIt = mapforcount.begin(); mapIt != mapforcount.end(); mapIt++)
     {
+        int lastletter = lettervalue;
+        lettervalue = mapIt->first[0].toAscii()-'A';
+        (abs(lettervalue-lastletter) > 0) && (row = 0);
+        (lettervalue < 0) && (lettervalue = 0);
         if (highestval == 10)
+
         {
             highestval--;
             tenmostfreq[9] = mapIt->second; // if we don't have a root
@@ -549,6 +554,25 @@ void mwindow::doProcessHeap()
                 tenmostfreq[t+1] = mapIt->second;
             }
         }
+
+        tables[lettervalue]->setItem(row, 0, new QTableWidgetItem(mapIt->first));
+        tables[lettervalue]->setItem(row, 1, new QTableWidgetItem(QString::number(mapIt->second->theCount())));
+        uint parasize = mapIt->second->theParagraph().size();
+        QString currentpara;
+        for (uint i = 0; i < parasize; i++)
+        {
+            currentpara.append(QString::number(mapIt->second->theParagraph()[i]));
+            currentpara.append(", ");
+        }
+        tables[lettervalue]->setItem(row, 2, new QTableWidgetItem(currentpara));
+        uint linesize = mapIt->second->theLine().size();
+        QString currentline;
+        for (uint i = 0; i < linesize; i++)
+        {
+            currentline.append(QString::number(mapIt->second->theLine()[i]));
+            currentline.append(", ");
+        }
+        tables[lettervalue]->setItem(row++, 3, new QTableWidgetItem(currentline));
     }
     parsed = false;
     statusBar()->showMessage("DONE POPULATING TABLES....", 10000);

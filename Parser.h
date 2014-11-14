@@ -68,7 +68,7 @@ Parser<T>::Parser()
     Expressions[5].setPattern("[\\;\\.\\!\\?\\'\\s]+"); // not that you would have multiple ! or ; or ? or ', but get them out if they exist
     Expressions[6].setPattern("(([\\s]+)|(\\-{2,2}))");
     Expressions[8].setPattern("\\'");
-    Expressions[9].setPattern("(n\\'t|\\'ve|\\'d|\\'ll|it\\'s|he\\'s|how\\'s|I\\'m|it\\'s|let\\'s|ma\\'am|o\\'clock|that\\'s|\\'re|when\\'s|what\\'s|here\\'s|who\\'s|why\\'s|'\\'all|d\\'|l\\'|\\'a)");
+    Expressions[9].setPattern("(n\\'t|\\'ve|\\'d|\\'ll|it\\'s|he\\'s|how\\'s|I\\'m|it\\'s|let\\'s|ma\\'am|o\\'clock|that\\'s|\\'re|when\\'s|what\\'s|here\\'s|who\\'s|why\\'s|'\\'all|^d\\'|^l\\'|\\'a)");
     Expressions[10].setPattern("\\'s*$"); // possessive or that's ..etc.
     Expressions[11].setPattern("^\\'[A-Za-z0-9\\-]+"); // start with an apostrophe
     Expressions[12].setPattern("(etc|i\\.e|e\\.g|r\\.s\\.\\v\\.p|e\\.t\\.\\a|p\\.s|a\\.d|b\\.c|b\\.c\\.e)\\.$"); //
