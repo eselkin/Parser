@@ -80,8 +80,8 @@ mwindow::mwindow(QWidget *parent) :
         theTabs->addTab(tabs[i],QString());
         setuptab(i);  // set up the layouts
     }
-    theLayout->setSizeConstraint(QLayout::SetNoConstraint);
-    theLayout->setContentsMargins(0,0,0,0);
+    //theLayout->setSizeConstraint(QLayout::SetNoConstraint);
+    //theLayout->setContentsMargins(0,0,0,0);
     theLayout->addWidget(theTabs,0,0,4,8);
     theLayout->addWidget(theButtons[0],6,0);
     theLayout->addWidget(theButtons[1],6,1);
@@ -129,7 +129,7 @@ void mwindow::doFindinSS()
     QList< QTableWidgetItem* > founds; // pointers to found items
     if (findss->text().isEmpty())
         return;
-    int charval = findss->text()[0].toUpper().toAscii() - 'A';
+    int charval = findss->text()[0].toUpper().toLatin1() - 'A';
     (charval < 0) && (charval = 0);
     theTabs->setCurrentIndex(charval+1);
     tabs[charval+1]->show();
@@ -517,7 +517,7 @@ void mwindow::doProcessHeap()
     for (mapIt = mapforcount.begin(); mapIt != mapforcount.end(); mapIt++)
     {
         int lastletter = lettervalue;
-        lettervalue = mapIt->first[0].toAscii()-'A';
+        lettervalue = mapIt->first[0].toLatin1()-'A';
         (abs(lettervalue-lastletter) > 0) && (row = 0);
         (lettervalue < 0) && (lettervalue = 0);
         if (highestval == 10)

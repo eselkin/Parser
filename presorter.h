@@ -9,7 +9,9 @@
 #include <QString>
 #include <QElapsedTimer>
 
-enum PROCESSTYPE { HEAP, AVL };
+using namespace std;
+
+enum PROCESSTYPE{HEAP,AVL};
 enum PARSE_ERRORS { OUT_OF_BOUND };
 
 template <typename T = node<QString>* >
@@ -32,7 +34,7 @@ public:
 private:
     PROCESSTYPE theprocess;
     vector< bst< node<T> > > bsts;        // the orchard of sbbsts
-    vector< heapsort< node<T>* > > heaps;  // the orchard of heapsorts
+    vector< Heap< node<T>* > > heaps;  // the orchard of heapsorts
 
     vector< vector < node<T> *> > alphavectors; // (0-9A)-Z
     vector< vector < ullint > > references;
@@ -67,10 +69,11 @@ vector<vector<node<T> *> > &presorter<T>::theAlphas()
 template <typename T>
 int presorter<T>::getalpha(const QChar &first_char)
 {
-    if (first_char.toAscii() <= 'A')
+    int firstchar = first_char.toLatin1();
+    if (firstchar <= 'A')
         return 0;
-    if (first_char.toAscii() <= 'Z')
-        return (first_char.toAscii()-'A');
+    if (firstchar <= 'Z')
+        return (firstchar-'A');
     throw OUT_OF_BOUND;
 }
 
@@ -106,7 +109,7 @@ presorter<T> &presorter<T>::operator >>(vector< vector<ullint> > &outputv)
 {
     QElapsedTimer QET;
     vector <ullint> tempu;
-    heapsort< node<T>* > temph;
+    Heap< node<T>* > temph;
 
     for (uint i = 0; i < 26; i++)
     {

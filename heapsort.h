@@ -1,34 +1,35 @@
-#ifndef HEAPSORT_H
-#define HEAPSORT_H
-#define DEBUG 1;
+#ifndef Heap_H
+#define Heap_H
 #include <vector>
 #include <QTextStream>
+
 using namespace std;
 
 typedef unsigned int uint;
 typedef unsigned long long int ullint;
 
 enum HTYPE {LESSTHAN, GREATERTHAN};
+
 template <typename T>
-class heapsort
+class Heap
 {
 
 public:
-    heapsort(const HTYPE& theType = LESSTHAN, const T& data = T()); // default is null; though that means you can't start with 0!
-    heapsort(const vector<T>& data); // to start with a vector, you need to actually pass it a vector
-    ~heapsort();
-    heapsort<T>& operator=(const heapsort<T> &other);
+    Heap(const HTYPE& theType = LESSTHAN, const T& data = T()); // default is null; though that means you can't start with 0!
+    Heap(const vector<T>& data); // to start with a vector, you need to actually pass it a vector
+    ~Heap();
+    Heap<T>& operator=(const Heap<T> &other);
 
     vector<T*>& theWorkingVec();
 
-    heapsort<T>& operator >> (vector<T>& vdata); // copy the vector the vector to vdata
-    heapsort<T>& operator >> (vector<ullint> &vdata);
-    heapsort<T>& operator << (const T& data); // the vector one will call this one
-    heapsort<T>& operator << (const vector<T>& vdata); // copy all of the pointers and make new pointers
+    Heap<T>& operator >> (vector<T>& vdata); // copy the vector the vector to vdata
+    Heap<T>& operator >> (vector<ullint> &vdata);
+    Heap<T>& operator << (const T& data); // the vector one will call this one
+    Heap<T>& operator << (const vector<T>& vdata); // copy all of the pointers and make new pointers
 
     template <typename U, typename V>
     friend
-    V& operator << (V& out, const heapsort<U>& thisheap);
+    V& operator << (V& out, const Heap<U>& thisheap);
 
     void clear();
     bool empty();
@@ -45,13 +46,13 @@ private:
     bool insert(const T &data); // or pointer
     void copy(const vector<T>& vdata); // copy the whole other vector
     void copyp(const vector<T *> &vdata); // or a vector of pointers
-    void copy(const heapsort<T>& otherheap);
+    void copy(const Heap<T>& otherheap);
     void nukem();
 
 };
 
 template <typename T>
-heapsort<T>::heapsort(const HTYPE& theType, const T &data)
+Heap<T>::Heap(const HTYPE& theType, const T &data)
 {
     position = positionp = 0;
     working_type = theType;
@@ -59,34 +60,34 @@ heapsort<T>::heapsort(const HTYPE& theType, const T &data)
 }
 
 template <typename T>
-heapsort<T>::heapsort(const vector<T> &data)
+Heap<T>::Heap(const vector<T> &data)
 {
     position = positionp = 0;
 }
 
 template <typename T>
-heapsort<T>::~heapsort()
+Heap<T>::~Heap()
 {
     nukem();
 }
 
 template <typename T>
-heapsort<T> &heapsort<T>::operator=(const heapsort<T> &other)
+Heap<T> &Heap<T>::operator=(const Heap<T> &other)
 {
-    // if we get a heapsort of type node<QString>* .. .etc.
+    // if we get a Heap of type node<QString>* .. .etc.
 
     return *this;
 }
 
 template <typename T>
-vector<T *>& heapsort<T>::theWorkingVec()
+vector<T *>& Heap<T>::theWorkingVec()
 {
     return working_vector;
 }
 
 
 template <typename T>
-heapsort<T> &heapsort<T>::operator >>(vector<ullint> &vdata)
+Heap<T> &Heap<T>::operator >>(vector<ullint> &vdata)
 {
     while (!this->empty())
         move_reheap(); // just pull off so we do the work to get the vector list
@@ -95,7 +96,7 @@ heapsort<T> &heapsort<T>::operator >>(vector<ullint> &vdata)
 }
 
 template <typename T>
-void heapsort<T>::move_reheap()
+void Heap<T>::move_reheap()
 {
     ullint  w_size = working_vector.size() - 1,
             temp = idx_vector[0];
@@ -112,7 +113,7 @@ void heapsort<T>::move_reheap()
 
 
 template <typename T>
-bool heapsort<T>::insert(const T& data)
+bool Heap<T>::insert(const T& data)
 {
     // node pointer
     if (data) {
@@ -126,7 +127,7 @@ bool heapsort<T>::insert(const T& data)
 }
 
 template <typename T>
-void heapsort<T>::copy(const vector<T> &vdata)
+void Heap<T>::copy(const vector<T> &vdata)
 {
     uint other_size = vdata.size();
     for (uint i = 0; i < other_size; i++)
@@ -135,7 +136,7 @@ void heapsort<T>::copy(const vector<T> &vdata)
 
 
 template <typename T>
-heapsort<T> &heapsort<T>::operator <<(const T &data)
+Heap<T> &Heap<T>::operator <<(const T &data)
 {
     // node pointer
     insert(data);
@@ -143,27 +144,27 @@ heapsort<T> &heapsort<T>::operator <<(const T &data)
 }
 
 template <typename T>
-heapsort<T> &heapsort<T>::operator <<(const vector<T> &vdata)
+Heap<T> &Heap<T>::operator <<(const vector<T> &vdata)
 {
     copy(vdata);
     return *this;
 }
 
 template <typename T>
-void heapsort<T>::clear()
+void Heap<T>::clear()
 {
     nukem();
 }
 
 
 template <typename T>
-void heapsort<T>::copy(const heapsort<T> &otherheap)
+void Heap<T>::copy(const Heap<T> &otherheap)
 {
     // I don't really think this is a good idea! Unless we pull out sorted, reverse the direction and push into this list... optimal?
 }
 
 template <typename T>
-void heapsort<T>::nukem()
+void Heap<T>::nukem()
 {
     // we made everything a pointer
     for (uint i = 0; i < working_vector.size(); i++)
@@ -174,14 +175,14 @@ void heapsort<T>::nukem()
 
 
 template <typename T>
-bool heapsort<T>::empty()
+bool Heap<T>::empty()
 {
     // works whether pointers or not
     return working_vector.size() == 0;
 }
 
 template <typename T>
-void heapsort<T>::heapify(int idx)
+void Heap<T>::heapify(int idx)
 {
     // gets called after we insert at the end
     // idx is the element we just added... so anything before is already heaped, so we just have to check with our parent
@@ -198,7 +199,7 @@ void heapsort<T>::heapify(int idx)
 }
 
 template <typename T>
-void heapsort<T>::reheapify(int parent, int end)
+void Heap<T>::reheapify(int parent, int end)
 {
     // gets called after we remove from the root
     int leftChild = parent*2+1,
@@ -220,7 +221,7 @@ void heapsort<T>::reheapify(int parent, int end)
 }
 
 template <typename T>
-bool heapsort<T>::_swap(T& x, T& y)
+bool Heap<T>::_swap(T& x, T& y)
 {
     T temp = x; // node pointer
     x = y;
@@ -228,4 +229,4 @@ bool heapsort<T>::_swap(T& x, T& y)
     return true;
 }
 
-#endif // HEAPSORT_H
+#endif // Heap_H
